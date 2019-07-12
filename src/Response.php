@@ -1,246 +1,175 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: glali
- * Date: 2017-04-27
- * Time: 14:44
- */
 
 namespace TANIOS\Airtable;
 
-
 class Response implements \ArrayAccess
 {
-
-    /**
-     * @var Airtable Instance of Airtable
-     */
     private $airtable;
-
-    /**
-     * @var Request Instance or Request
-     */
     private $request;
-
-    /**
-     * @var string Response content
-     */
-    private $content = "";
-
-    /**
-     * @var bool|\stdClass Response
-     */
+    private $content = '';
     private $parsedContent = false;
 
-    /**
-     * Response constructor.
-     * @param Airtable $airtable Instance of Airtable
-     * @param Request $request Instance of Request
-     * @param string $content Content string
-     */
-    public function __construct( $airtable, $request, $content, $relations = false )
+    public function __construct(Airtable $airtable, Request $request, string $content, bool $relations = false)
     {
-
         $this->airtable = $airtable;
-
         $this->request = $request;
-
         $this->content = $content;
 
-        try
-        {
-            $this->parsedContent = json_decode( $content );
-        }
-        catch ( \Exception $e )
-        {
+        try {
+            $this->parsedContent = json_decode($content);
+        } catch (\Exception $e) {
             $this->parsedContent = false;
         }
 
-        if( is_array( $relations ) && count( $relations ) > 0 )
-        {
-
-            if( array_keys( $relations ) !== range( 0, count( $relations ) - 1 ) )
-            {
-                foreach ( $relations as $related_field => $related_table )
-                {
-                    $this->processRelatedField( $related_field, $related_table );
+        if (is_array($relations) && count($relations) > 0) {
+            if (array_keys($relations) !== range(0, count($relations) - 1)) {
+                foreach ($relations as $relatedField => $relatedTable ) {
+                    $this->processRelatedField($relatedField, $relatedTable);
                 }
-            }
-            else
-            {
-                foreach ( $relations as $related_field )
-                {
-                    $this->processRelatedField( $related_field );
+            } else {
+                foreach ($relations as $relatedField) {
+                    $this->processRelatedField($relatedField);
                 }
             }
 
         }
-
     }
 
-    private function processRelatedField( $related_field, $related_table = false )
+    private function processRelatedField(string $relatedField, bool $relatedTable = false) : void
     {
-
-        if( isset( $this->parsedContent->records ) && is_array( $this->parsedContent->records ) && count( $this->parsedContent->records ) > 0 )
-        {
-            foreach ( $this->parsedContent->records as $record_key => $record )
-            {
-                $this->parsedContent->records[ $record_key ] = $this->loadRelatedField( $related_field, $related_table, $record );
+        if (isset($this->parsedContent->records) && is_array($this->parsedContent->records) && count($this->parsedContent->records) > 0) {
+            foreach ($this->parsedContent->records as $recordKey => $record) {
+                $this->parsedContent->records[$recordKey] = $this->loadRelatedField($relatedField, $relatedTable, $record);
             }
+        } else {
+            $this->parsedContent = $this->loadRelatedField($relatedField, $relatedTable, $this->parsedContent);
         }
-        else
-        {
-            $this->parsedContent = $this->loadRelatedField( $related_field, $related_table, $this->parsedContent );
-        }
-
     }
 
-    private function loadRelatedField( $related_field, $related_table, $record )
+    private function loadRelatedField(string $relatedField, string $relatedTable, object $record) : object
     {
-
-
-        if( ! isset( $record->fields ) || ! isset( $record->fields->$related_field ) )
-        {
+        if (!isset($record->fields) || !isset($record->fields->$relatedField)) {
             return $record;
         }
 
-        if( empty( $related_table ) )
-        {
-            $related_table = $related_field;
+        if (empty($relatedTable)) {
+            $relatedTable = $relatedField;
         }
 
-        $relation_ids = $record->fields->$related_field;
+        $relationIds = $record->fields->$relatedField;
 
-        if( ! is_array( $relation_ids ) )
-        {
-            $relation_ids = [ $relation_ids ];
+        if (!is_array($relationIds)) {
+            $relationIds = [$relationIds];
         }
 
-        $relation_formula = "OR(";
-        $relation_formula .= implode( ', ', array_map( function( $id ) { return "RECORD_ID() = '$id'"; }, $relation_ids ) );
-        $relation_formula .= ")";
+        $relationFormula = "OR(";
+        $relationFormula .= implode(', ', array_map(function($id) {
+            return "RECORD_ID() = '$id'";
+        }, $relationIds));
+        $relationFormula .= ")";
 
-        if( ! is_array( $related_table ) )
-        {
-            $relation_request = $this->airtable->getContent( "$related_table", [
-                'filterByFormula'       => $relation_formula
-            ] );
-        }
-        else
-        {
-            $related_table_relations = isset( $related_table[ 'relations' ] ) && is_array( $related_table[ 'relations' ] )
-                ? $related_table[ 'relations' ]
+        if (!is_array($relatedTable)) {
+            $relationRequest = $this->airtable->getContent("$relatedTable", [
+                'filterByFormula' => $relationFormula,
+            ]);
+        } else {
+            $relatedTableRelations = isset($relatedTable['relations']) && is_array($relatedTable['relations'])
+                ? $relatedTable['relations']
                 : false;
 
-            $related_table_name = ! empty( $related_table[ 'table' ] ) ? $related_table[ 'table' ] : $related_field;
+            $relatedTableName = !empty($relatedTable[ 'table' ]) ? $relatedTable['table'] : $relatedField;
 
-            $relation_request = $this->airtable->getContent( "$related_table_name", [
-                'filterByFormula'       => $relation_formula
-            ], $related_table_relations );
+            $relationRequest = $this->airtable->getContent("$relatedTableName", [
+                'filterByFormula' => $relationFormula,
+            ], $relatedTableRelations);
         }
 
+        $relatedRecords = [];
 
-        $related_records = [];
+        do {
+            $relationResponse = $relationRequest->getResponse();
 
-        do
-        {
-            $relation_response = $relation_request->getResponse();
-
-            if( ! is_array( $relation_response->records ) || count( $relation_response->records ) < 0 )
-            {
+            if (!is_array($relationResponse->records) || count($relationResponse->records) < 0) {
                 break;
             }
 
-            foreach ( $relation_response->records as $related_record )
-            {
-                $formatted_record = $related_record->fields;
-                $formatted_record->id = $related_record->id;
+            foreach ($relationResponse->records as $relatedRecord) {
+                $formattedRecord = $relatedRecord->fields;
+                $formattedRecord->id = $relatedRecord->id;
 
-                $related_records[] = $formatted_record;
+                $relatedRecords[] = $formattedRecord;
             }
-        }
-        while( $relation_request = $relation_response->next() );
+        } while($relationRequest = $relationResponse->next());
 
-        if( is_array( $record->fields->$related_field ) )
-        {
-            $record->fields->$related_field = $related_records;
-        }
-        else
-        {
-            $record->fields->$related_field = count( $related_records ) > 0
-                ? $related_records[ 0 ]
+        if (is_array($record->fields->$relatedField)) {
+            $record->fields->$relatedField = $relatedRecords;
+        } else {
+            $record->fields->$relatedField = count($relatedRecords) > 0
+                ? $relatedRecords[0]
                 : null;
         }
 
         return $record;
-
     }
 
     public function next()
     {
-
-        if( ! $this->parsedContent )
-        {
+        if (!$this->parsedContent) {
             return false;
         }
 
-
-        if( ! isset( $this[ 'offset' ] ) )
-        {
+        if (!isset($this['offset'])) {
             return false;
         }
 
-        $this->request->offset = $this[ 'offset' ];
+        $this->request->offset = $this['offset'];
 
         return $this->request;
-
     }
 
-    public function __get( $key )
+    public function __get(string $key) : ?string
     {
-        if( ! $this->parsedContent || ! isset( $this->parsedContent->$key ) )
-        {
+        if (!$this->parsedContent || ! isset($this->parsedContent->$key)) {
             return null;
         }
 
         return $this->parsedContent->$key;
     }
 
-    public function __toString()
+    public function __toString() : string
     {
         return $this->content;
     }
 
-    public function __isset( $key )
+    public function __isset(string $key) : bool
     {
-        return $this->parsedContent && isset( $this->parsedContent->$key );
+        return $this->parsedContent && isset($this->parsedContent->$key);
     }
 
-    public function offsetExists($offset)
+    public function offsetExists(string $offset) : bool
     {
-        return $this->parsedContent && isset( $this->parsedContent->$offset );
+        return $this->parsedContent && isset($this->parsedContent->$offset);
     }
 
-    public function offsetGet($offset)
+    public function offsetGet(string $offset)
     {
-        return $this->parsedContent && isset( $this->parsedContent->$offset )
-                ? $this->parsedContent->$offset
-                : null;
+        return $this->parsedContent && isset($this->parsedContent->$offset)
+            ? $this->parsedContent->$offset
+            : null;
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet(string $offset, $value) : void
     {
-        if( $this->parsedContent )
-        {
+        if ($this->parsedContent) {
             $this->parsedContent->$offset = $value;
         }
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset(string $offset) : void
     {
-        if( $this->parsedContent && isset( $this->parsedContent->$offset ) )
-        {
-            unset( $this->parsedContent->$offset );
+        if ($this->parsedContent && isset($this->parsedContent->$offset)) {
+            unset($this->parsedContent->$offset);
         }
     }
 }
+

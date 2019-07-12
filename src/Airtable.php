@@ -9,22 +9,20 @@ namespace TANIOS\Airtable;
  * @copyright Sleiman Tanios - TANIOS 2017
  * @version 1.0
  */
-
-
-class Airtable 
+class Airtable
 {
-	
     const API_URL = "https://api.airtable.com/v0/";
 
-    private $_key;
+    private $key;
+    private $base;
+    private $requestOptions;
 
-    private $_base;
-	
-	public function __construct($config)
+    public function __construct($config)
     {
         if (is_array($config)) {
             $this->setKey($config['api_key']);
             $this->setBase($config['base']);
+            $this->setRequestOptions($config['request_options']);
         } else {
             echo 'Error: __construct() - Configuration data is missing.';
         }
@@ -32,87 +30,81 @@ class Airtable
 
     public function setKey($key)
     {
-        $this->_key = $key;
+        $this->key = $key;
     }
 
     public function getKey()
     {
-        return $this->_key;
+        return $this->key;
     }
 
     public function setBase($base)
     {
-        $this->_base = $base;
+        $this->base = $base;
     }
 
     public function getBase()
     {
-        return $this->_base;
+        return $this->base;
     }
 
-    public function getApiUrl($request){
-	    $request = str_replace( ' ', '%20', $request );
-    	$url = self::API_URL.$this->getBase().'/'.$request;
-    	return $url;
+    public function getApiUrl($request)
+    {
+        $request = str_replace(' ', '%20', $request);
+        $url = self::API_URL.$this->getBase().'/'.$request;
+
+        return $url;
     }
 
-    function getContent($content_type,$params="",$relations=false)
+    public function setRequestOptions(array $requestOptions)
     {
-        return new Request( $this, $content_type, $params, false, $relations );
-	}
+        $this->requestOptions = $requestOptions;
+    }
 
-	function saveContent($content_type,$fields)
-	{
-
-		$fields = array('fields'=>$fields);
-
-		$request = new Request( $this, $content_type, $fields, true );
-
-		return $request->getResponse();
-
-	}
-
-	function updateContent($content_type,$fields)
-	{
-
-		$fields = array('fields'=>$fields);
-
-		$request = new Request( $this, $content_type, $fields, 'patch' );
-
-		return $request->getResponse();
-
-	}
-
-	function deleteContent($content_type)
+    function getContent(string $table, array $data = [], bool $relations = false)
     {
+        return new Request($this, $table, $data, false, $relations, $this->requestOptions);
+    }
 
-        $request = new Request( $this, $content_type, [], 'delete' );
+    function saveContent(string $table, array $fields)
+    {
+        $fields = ['fields' => $fields];
+        $request = new Request($this, $table, $fields, true, $this->requestOptions);
 
         return $request->getResponse();
-
     }
-    
-    function quickCheck($content_type,$field="",$value="")
-    {
-        $params = "";
 
-        if (!empty($field)&& !empty($value)){
-            
+    function updateContent(string $table, array $fields)
+    {
+        $fields = ['fields' => $fields];
+        $request = new Request($this, $table, $fields, 'patch', $this->requestOptions);
+
+        return $request->getResponse();
+    }
+
+    function deleteContent(string $table)
+    {
+        $request = new Request($this, $table, [], 'delete', $this->requestOptions);
+
+        return $request->getResponse();
+    }
+
+    function quickCheck(string $table, string $field = '', string $value = '')
+    {
+        $params = '';
+        if (!empty($field)&& !empty($value)) {
             $params = array(
                 "filterByFormula" => "AND({{$field}} = '$value')",
             );
         }
-        
-        $request = new Request( $this, $content_type, $params, false );
 
+        $request = new Request($this, $table, $params, false, $this->requestOptions);
         $response = $request->getResponse();
-        
-     
+
         $results['count'] = count($response->records);
         $results['records'] = $response->records;
-        
-     
+
         return (object)$results;
     }
-
 }
+
