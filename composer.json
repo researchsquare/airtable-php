@@ -1,5 +1,5 @@
 {
-   "name": "sleiman/airtable-php",
+   "name": "researchsquare/airtable-php",
    "license": "MIT",
    "autoload": {
      "psr-4": {
@@ -10,6 +10,6 @@
    "description": "A PHP wrapper for the Airtable API Edit",
    "version": "2.2.9",
    "require": {
-       "php": ">=5.3.3"
+       "php": ">=7.1"
    }
 }
