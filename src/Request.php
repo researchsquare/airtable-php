@@ -37,8 +37,8 @@ class Request implements \ArrayAccess
 
         $request = $this->table;
 
-        if(!$this->method) {
-            if (!empty($this->data)){
+        if (!$this->method) {
+            if (!empty($this->data)) {
                 $data = http_build_query($this->data);
                 $request .= "?" . $data;
             }
@@ -57,12 +57,12 @@ class Request implements \ArrayAccess
         if ($this->method) {
             if (strtolower($this->method) === 'patch') {
                 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PATCH');
-            } else if (strtolower($this->method) === 'delete') {
+            } elseif (strtolower($this->method) === 'delete') {
                 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
             }
 
-            curl_setopt($curl,CURLOPT_POST, count($this->data));
-            curl_setopt($curl,CURLOPT_POSTFIELDS, json_encode($this->data));
+            curl_setopt($curl, CURLOPT_POST, count($this->data));
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($this->data));
         }
 
         $this->curl = $curl;
@@ -87,28 +87,27 @@ class Request implements \ArrayAccess
         $this->data[$key] = $value;
     }
 
-    public function offsetExists(string $offset) : bool
+    public function offsetExists($offset)
     {
         return is_array($this->data) && isset($this->data[$offset]);
     }
 
-    public function offsetGet(string $offset) : ?string
+    public function offsetGet($offset)
     {
         return is_array($this->data) && isset($this->data[$offset])
             ? $this->data[$offset]
             : null;
     }
 
-    public function offsetSet(string $offset, string $value) : void
+    public function offsetSet($offset, $value)
     {
         $this->__set($offset, $value);
     }
 
-    public function offsetUnset(string $offset) : void
+    public function offsetUnset($offset)
     {
         if (is_array($this->data) && isset($this->data[$offset])) {
             unset($this->data[$offset]);
         }
     }
 }
-

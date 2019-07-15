@@ -61,12 +61,12 @@ class Airtable
         $this->requestOptions = $requestOptions;
     }
 
-    function getContent(string $table, array $data = [], bool $relations = false)
+    public function getContent(string $table, array $data = [], bool $relations = false)
     {
         return new Request($this, $table, $data, false, $relations, $this->requestOptions);
     }
 
-    function saveContent(string $table, array $fields)
+    public function saveContent(string $table, array $fields)
     {
         $fields = ['fields' => $fields];
         $request = new Request($this, $table, $fields, true, $this->requestOptions);
@@ -74,7 +74,7 @@ class Airtable
         return $request->getResponse();
     }
 
-    function updateContent(string $table, array $fields)
+    public function updateContent(string $table, array $fields)
     {
         $fields = ['fields' => $fields];
         $request = new Request($this, $table, $fields, 'patch', $this->requestOptions);
@@ -82,14 +82,14 @@ class Airtable
         return $request->getResponse();
     }
 
-    function deleteContent(string $table)
+    public function deleteContent(string $table)
     {
         $request = new Request($this, $table, [], 'delete', $this->requestOptions);
 
         return $request->getResponse();
     }
 
-    function quickCheck(string $table, string $field = '', string $value = '')
+    public function quickCheck(string $table, string $field = '', string $value = '')
     {
         $params = '';
         if (!empty($field)&& !empty($value)) {
@@ -107,4 +107,3 @@ class Airtable
         return (object)$results;
     }
 }
-
