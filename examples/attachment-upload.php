@@ -1,4 +1,4 @@
-<?
+<?php
 
 require 'vendor/autoload.php';
 
@@ -15,18 +15,18 @@ To add attachments to "Attachments", add new attachment objects to the existing 
 
 // Array of attachment objects (files, images)
 $attachments_array = array(
-	array(
-	 	'url' => 'FIRST_ATTACHMENT_URL' // must be hosted on a web url 
-	),
-	array(
-	 	'url' => 'SECOND_ATTACHMENT_URL' // must be hosted on a web url 
-	)
+    array(
+        'url' => 'FIRST_ATTACHMENT_URL' // must be hosted on a web url
+    ),
+    array(
+        'url' => 'SECOND_ATTACHMENT_URL' // must be hosted on a web url
+    )
 );
 
 $update_contact_details = array(
-	'Attachments' => $attachments_array
+    'Attachments' => $attachments_array
 );
 
-$update_contact = $airtable->updateContent("Contacts/{entry-id}",$update_contact_details);
+$update_contact = $airtable->updateContent("Contacts/{entry-id}", $update_contact_details);
 
 print_r($update_contact);

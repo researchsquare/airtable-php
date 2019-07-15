@@ -1,4 +1,4 @@
-<?
+<?php
 
 require 'vendor/autoload.php';
 
@@ -12,15 +12,15 @@ $airtable = new Airtable(array(
 
 
 $images_array = array(
-	array(
-	 	'url' => 'IMAGE_URL'
-	)
+    array(
+        'url' => 'IMAGE_URL'
+    )
 );
 
 $update_contact_details = array(
-	'Image' => $images_array // test by changing the field name to something that doesn't exist
+    'Image' => $images_array // test by changing the field name to something that doesn't exist
 );
 
-$update_contact = $airtable->updateContent("Customers/{entry-id}",$update_contact_details);
+$update_contact = $airtable->updateContent("Customers/{entry-id}", $update_contact_details);
 
 print_r($update_contact);

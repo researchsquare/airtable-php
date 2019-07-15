@@ -146,26 +146,26 @@ class Response implements \ArrayAccess
         return $this->parsedContent && isset($this->parsedContent->$key);
     }
 
-    public function offsetExists(string $offset) : bool
+    public function offsetExists($offset)
     {
         return $this->parsedContent && isset($this->parsedContent->$offset);
     }
 
-    public function offsetGet(string $offset)
+    public function offsetGet($offset)
     {
         return $this->parsedContent && isset($this->parsedContent->$offset)
             ? $this->parsedContent->$offset
             : null;
     }
 
-    public function offsetSet(string $offset, $value) : void
+    public function offsetSet($offset, $value)
     {
         if ($this->parsedContent) {
             $this->parsedContent->$offset = $value;
         }
     }
 
-    public function offsetUnset(string $offset) : void
+    public function offsetUnset($offset)
     {
         if ($this->parsedContent && isset($this->parsedContent->$offset)) {
             unset($this->parsedContent->$offset);
