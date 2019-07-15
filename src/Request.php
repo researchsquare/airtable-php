@@ -17,7 +17,7 @@ class Request implements \ArrayAccess
         string $table,
         array $data = [],
         string $method = 'get',
-        bool $relations = false,
+        $relations = false,
         array $options = []
     ) {
         $this->airtable = $airtable;

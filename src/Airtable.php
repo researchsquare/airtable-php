@@ -61,7 +61,7 @@ class Airtable
         $this->requestOptions = $requestOptions;
     }
 
-    public function getContent(string $table, array $data = [], bool $relations = false)
+    public function getContent(string $table, array $data = [], $relations = false)
     {
         return new Request($this, $table, $data, false, $relations, $this->requestOptions);
     }
