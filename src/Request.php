@@ -14,11 +14,11 @@ class Request implements \ArrayAccess
 
     public function __construct(
         Airtable $airtable,
-        string $table,
-        array $data = [],
-        string $method = 'get',
+        $table,
+        $data = [],
+        $method = 'get',
         $relations = false,
-        array $options = []
+        $options = []
     ) {
         $this->airtable = $airtable;
         $this->table = $table;

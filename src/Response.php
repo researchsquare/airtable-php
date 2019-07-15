@@ -9,7 +9,7 @@ class Response implements \ArrayAccess
     private $content = '';
     private $parsedContent = false;
 
-    public function __construct(Airtable $airtable, Request $request, string $content, bool $relations = false)
+    public function __construct(Airtable $airtable, Request $request, $content, $relations = false)
     {
         $this->airtable = $airtable;
         $this->request = $request;
@@ -35,7 +35,7 @@ class Response implements \ArrayAccess
         }
     }
 
-    private function processRelatedField(string $relatedField, bool $relatedTable = false) : void
+    private function processRelatedField($relatedField, $relatedTable = false)
     {
         if (isset($this->parsedContent->records) && is_array($this->parsedContent->records) && count($this->parsedContent->records) > 0) {
             foreach ($this->parsedContent->records as $recordKey => $record) {
@@ -46,7 +46,7 @@ class Response implements \ArrayAccess
         }
     }
 
-    private function loadRelatedField(string $relatedField, string $relatedTable, object $record) : object
+    private function loadRelatedField($relatedField, $relatedTable, $record)
     {
         if (!isset($record->fields) || !isset($record->fields->$relatedField)) {
             return $record;
