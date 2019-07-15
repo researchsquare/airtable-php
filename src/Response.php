@@ -141,7 +141,7 @@ class Response implements \ArrayAccess
         return $this->content;
     }
 
-    public function __isset(string $key) : bool
+    public function __isset($key)
     {
         return $this->parsedContent && isset($this->parsedContent->$key);
     }
