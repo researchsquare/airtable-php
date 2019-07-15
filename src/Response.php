@@ -127,7 +127,7 @@ class Response implements \ArrayAccess
         return $this->request;
     }
 
-    public function __get(string $key) : ?string
+    public function __get($key)
     {
         if (!$this->parsedContent || ! isset($this->parsedContent->$key)) {
             return null;
@@ -136,7 +136,7 @@ class Response implements \ArrayAccess
         return $this->parsedContent->$key;
     }
 
-    public function __toString() : string
+    public function __toString()
     {
         return $this->content;
     }
