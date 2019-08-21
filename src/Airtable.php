@@ -22,7 +22,7 @@ class Airtable
         if (is_array($config)) {
             $this->setKey($config['api_key']);
             $this->setBase($config['base']);
-            $this->setRequestOptions($config['request_options']);
+            $this->setRequestOptions($config['request_options'] ?? []);
         } else {
             echo 'Error: __construct() - Configuration data is missing.';
         }
