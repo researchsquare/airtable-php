@@ -18,6 +18,8 @@ class Airtable
     private $requestOptions;
     private $redis;
     private $redisKey;
+    private $redisWait = 2;
+    private $redisNumAttempts = 30;
 
     public function __construct($config)
     {
@@ -69,9 +71,18 @@ class Airtable
         if (
             isset($redisOptions['client'])
             && isset($redisOptions['key'])
+            && is_string($redisOptions['key'])
         ) {
             $this->redis = $redisOptions['client'];
             $this->redisKey = $redisOptions['key'];
+
+            if (isset($redisOptions['wait']) && is_numeric($redisOptions['wait'])) {
+                $this->redisWait = $redisOptions['wait'];
+            }
+
+            if (isset($redisOptions['numAttempts']) && is_numeric($redisOptions['numAttempts'])) {
+                $this->redisNumAttempts = $redisOptions['numAttempts'];
+            }
         }
     }
 
@@ -155,12 +166,12 @@ class Airtable
         }
 
         $lockAttempts = 0;
-        while ($this->redis->exists($this->redisKey) && $lockAttempts < 30) {
-            sleep(2);
+        while ($this->redis->exists($this->redisKey) && $lockAttempts < $this->redisNumAttempts) {
+            sleep($this->redisWait);
             $lockAttempts++;
         }
-        // Acquire redis lock, expires in 60 seconds
-        $this->redis->set($this->redisKey, 1, 'EX', 60);
+        // Acquire redis lock
+        $this->redis->set($this->redisKey, 1, 'EX', ($this->redisWait * $this->redisNumAttempts));
     }
 
     private function releaseLock()
