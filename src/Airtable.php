@@ -56,7 +56,7 @@ class Airtable
     public function getApiUrl($request)
     {
         $request = str_replace(' ', '%20', $request);
-        $url = self::API_URL.$this->getBase().'/'.$request;
+        $url = self::API_URL . $this->getBase() . '/' . $request;
 
         return $url;
     }
@@ -137,7 +137,7 @@ class Airtable
         $this->acquireLock();
 
         $params = '';
-        if (!empty($field)&& !empty($value)) {
+        if (!empty($field) && !empty($value)) {
             $params = array(
                 "filterByFormula" => "AND({{$field}} = '$value')",
             );
@@ -146,12 +146,12 @@ class Airtable
         $request = new Request($this, $table, $params, false, $this->requestOptions);
         $response = $request->getResponse();
 
-        $results['count'] = count($response->records);
-        $results['records'] = $response->records;
+        $results['count'] = count($response->records ?? []);
+        $results['records'] = $response->records ?? [];
 
         $this->releaseLock();
 
-        return (object)$results;
+        return (object) $results;
     }
 
     private function useRedisLock()
